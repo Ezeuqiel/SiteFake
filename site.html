@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fila Virtual Pro</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --purple-bg: #1e0a3c;
+            --card-bg: #2d144b;
+            --box-inner: #1f0b33;
+            --green-btn: #00ff66;
+            --text-gray: #a18cb5;
+            --cursor-proibido: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="white" stroke="red" stroke-width="2"/><line x1="5" y1="19" x2="19" y2="5" stroke="red" stroke-width="2"/></svg>') 12 12, auto;
+        }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--purple-bg);
+            color: white;
+            overflow: hidden;
+        }
+
+        .container {
+            background: var(--card-bg);
+            padding: 50px 40px;
+            border-radius: 40px;
+            text-align: center;
+            width: 90%;
+            max-width: 420px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+        }
+
+        h1 {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .counters {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .box {
+            background: var(--box-inner);
+            padding: 30px 10px;
+            border-radius: 25px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .label-box {
+            font-size: 10px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            color: var(--text-gray);
+            font-weight: 600;
+        }
+
+        .numero {
+            font-size: 42px;
+            font-weight: 800;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .btn-main {
+            background: var(--green-btn);
+            color: #000;
+            padding: 20px;
+            border: none;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 14px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .btn-secret {
+            background: rgba(255, 255, 255, 0.03);
+            color: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border: 1px dashed rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 13px;
+            text-transform: uppercase;
+            cursor: var(--cursor-proibido);
+        }
+
+        /* POPUP IGUAL AO ANTERIOR */
+        .popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(6px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .popup-content {
+            background: rgba(34,34,34,0.95);
+            padding: 30px;
+            border-radius: 25px;
+            text-align: center;
+            border: 1px solid var(--green-btn);
+            transform: translateY(50px);
+            opacity: 0;
+            transition: all 0.4s ease;
+            max-width: 300px;
+        }
+
+        .popup.show .popup-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .close-btn {
+            margin-top: 20px;
+            background: #ff4444;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        /* NOTIFICAÇÕES */
+        #toast-container {
+            position: fixed;
+            bottom: 25px;
+            left: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .toast {
+            background: rgba(0,0,0,0.6);
+            padding: 15px 25px;
+            border-radius: 15px;
+            font-size: 14px;
+            transform: translateX(-150%);
+            transition: 0.5s;
+        }
+
+        .toast.show { transform: translateX(0); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Fila de Espera</h1>
+
+    <div class="counters">
+        <div class="box">
+            <span class="label-box">Posição</span>
+            <div class="numero" id="fila">300</div>
+        </div>
+        <div class="box">
+            <span class="label-box">Tempo</span>
+            <div class="numero" id="tempo">60m</div>
+        </div>
+    </div>
+
+    <div class="btn-group">
+        <button class="btn-main" onclick="abrirPopup()">Pular fila agora</button>
+        <a href="#" class="btn-secret" onclick="return false;">Vídeo Secreto (Bloqueado)</a>
+    </div>
+</div>
+
+<div class="popup" id="popup">
+    <div class="popup-content">
+        <p style="margin-bottom: 20px;">Quer pular a fila?<br>Pague apenas <b>R$ 5,00</b></p>
+        <img id="qr" src="" width="160" style="background: white; padding: 10px; border-radius: 15px;">
+        <p style="margin-top: 20px; font-size: 12px; opacity: 0.8;">Retorno imediato</p>
+        <div class="close-btn" onclick="fecharPopup()">Fechar</div>
+    </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+    // LÓGICA DE TEMPO: 5 MINUTOS (DE 300 PARA 90)
+    let posInicial = 300;
+    let posFinal = 90;
+    let tempoInicial = 60;
+    let tempoFinal = 20;
+    
+    let duracaoTotal = 5 * 60 * 1000; 
+    let totalPassos = posInicial - posFinal; 
+    let intervaloMs = duracaoTotal / totalPassos; 
+
+    let filaAtual = posInicial;
+
+    function atualizarFila() {
+        if (filaAtual > posFinal) {
+            filaAtual--;
+            let tempoAtual = tempoInicial - ((posInicial - filaAtual) * (tempoInicial - tempoFinal) / totalPassos);
+            
+            document.getElementById("fila").innerText = Math.round(filaAtual);
+            document.getElementById("tempo").innerText = Math.round(tempoAtual) + "m";
+        }
+    }
+    setInterval(atualizarFila, intervaloMs);
+
+    // FUNÇÕES DO POPUP
+    function abrirPopup() {
+        let codigo = "215021a4-594f-4f9a-a1f0-0e6026f11e68";
+        let url = "https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=" + codigo;
+        document.getElementById("qr").src = url;
+
+        let popup = document.getElementById("popup");
+        popup.style.display = "flex";
+        setTimeout(() => popup.classList.add("show"), 10);
+    }
+
+    function fecharPopup() {
+        let popup = document.getElementById("popup");
+        popup.classList.remove("show");
+        setTimeout(() => popup.style.display = "none", 400);
+    }
+
+    // NOTIFICAÇÕES
+    const nomes = ["Lucas", "Gabriel", "Matheus", "Pedro", "João", "Felipe", "Rafael", "Bruno", "Carlos", "André"];
+    function showNotification() {
+        const container = document.getElementById('toast-container');
+        const nome = nomes[Math.floor(Math.random() * nomes.length)];
+        const msg = Math.random() > 0.9 ? `${nome} pagou 5 reais` : `${nome} entrou na fila`;
+        
+        const div = document.createElement("div");
+        div.className = "toast";
+        div.innerText = msg;
+        container.appendChild(div);
+        setTimeout(() => div.classList.add("show"), 50);
+        setTimeout(() => {
+            div.classList.remove("show");
+            setTimeout(() => div.remove(), 500);
+        }, 4000);
+    }
+    setInterval(showNotification, 3000);
+</script>
+
+</body>
+</html>
